@@ -35,11 +35,14 @@ bool Process::operator<(Process const& a) const { return a.CpuUtilization() < Cp
 
 // Calculate the CPU based on parsed values
 float Process::CalcCpuUtilization(int pid) {
-    vector<string> times = LinuxParser::CpuUtilization(pid);
-    
-    float total = stof(times[13]) + stof(times[14]) + stof(times[15]) + stof(times[16]);
-    float seconds = LinuxParser::UpTime() - ( stof(times[21]) / sysconf(_SC_CLK_TCK));
+    vector<string> times;
+    float total, seconds;
 
+    times = LinuxParser::CpuUtilization(pid);
+    if (LinuxParser::is_number(times[13]) && LinuxParser::is_number(times[14]) && LinuxParser::is_number(times[15]) && LinuxParser::is_number(times[16]) && LinuxParser::is_number(times[21])) {
+      total = stof(times[13]) + stof(times[14]) + stof(times[15]) + stof(times[16]);
+      seconds = LinuxParser::UpTime() - ( stof(times[21]) / sysconf(_SC_CLK_TCK));
+    }   
     return ((total / sysconf(_SC_CLK_TCK)) / seconds);
  }
 

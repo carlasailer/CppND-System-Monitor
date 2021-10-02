@@ -13,7 +13,12 @@ using std::string;
 using std::to_string;
 using std::vector;
 
-namespace fs = std::experimental::filesystem;
+// helper function to determine whether string is only digits 
+bool LinuxParser::is_number(const std::string& s) {
+    std::string::const_iterator it = s.begin();
+    while (it != s.end() && std::isdigit(*it)) ++it;
+    return !s.empty() && it == s.end();
+}
 
 // Read and return the system OS info
 string LinuxParser::OperatingSystem() {
@@ -126,7 +131,7 @@ vector<string> LinuxParser::CpuUtilization() {
   return times; 
 }
 
-// DONE: Read and return the total number of processes
+// Read and return the total number of processes
 int LinuxParser::TotalProcesses() { 
   string line;
   string key;
@@ -202,8 +207,8 @@ string LinuxParser::Ram(int pid) {
           //convert from kB to MB
           ram = std::stod(value) * 0.001; 
           value = std::to_string(ram);
-          //format to be displayed with three decimals
-          value = value.substr(0, value.size()-3);
+          //format to be displayed with two decimals
+          value = value.substr(0, value.size()-4);
           return value;
         }
       }
@@ -258,9 +263,9 @@ string LinuxParser::User(int pid) {
 // Read and return the uptime of a process
 long LinuxParser::UpTime(int pid) { 
   string line;
-  string value;
+  string value{};
   int position = 22;
-  float uptime;
+  float uptime{0.0f};
 
   // access the uptime file for the process
   std::ifstream filestream(kProcDirectory + std::to_string(pid) + kStatFilename);
@@ -270,14 +275,16 @@ long LinuxParser::UpTime(int pid) {
       std::istringstream linestream(line);
       for (auto i = 0; i < position; i++) {
         linestream >> value;
-      }
-    
+      }    
   }
-  //convert lock ticks to seconds 
-  uptime = std::stof(value) / sysconf(_SC_CLK_TCK);
+  //convert lock ticks to seconds
+  if (LinuxParser::is_number(value)) { 
+    uptime = std::stof(value) / sysconf(_SC_CLK_TCK);
+    //substract process uptime from system uptime
+    return (LinuxParser::UpTime() - uptime); 
+  }
 
-  //substract process uptime from system uptime
-  return (LinuxParser::UpTime() - uptime); 
+  else { return uptime; }
 }
 
 // Read and return the CPU times for the process
