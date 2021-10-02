@@ -30,6 +30,9 @@ std::string Kernel();
 // CPU
 std::vector<std::string> CpuUtilization();
 
+// helper
+bool is_number(const std::string& s);
+
 // Processes
 std::string Command(int pid);
 std::string Ram(int pid);
