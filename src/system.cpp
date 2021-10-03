@@ -26,10 +26,7 @@ vector<Process>& System::Processes() {
   std::vector<int> all_pids = LinuxParser::Pids();
 
   // populate vector processes
-  for (int pid : all_pids) {
-    Process process(pid);
-    processes_.push_back(process);
-  } 
+  for (int pid : all_pids) { processes_.emplace_back(pid); } 
 
   // sort the vector by operator overloading 
   std::sort(processes_.begin(), processes_.end());
